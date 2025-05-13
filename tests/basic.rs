@@ -14,12 +14,12 @@ fn test_init_success() {
 
 fn init_game_success(sys: &System, difficulty: DifficultyLevel) -> Program {
     let pebbles_init = PebblesInit {
-        difficulty: difficulty,
+        difficulty,
         pebbles_count: PEBBLES_COUNT,
         max_pebbles_per_turn: MAX_PEBBLES_PER_TURN,
     };
 
-    let pebbles_game = Program::current(&sys);
+    let pebbles_game = Program::current(sys);
     sys.mint_to(SENDER_ID, 100000000000000000);
     pebbles_game.send(SENDER_ID, pebbles_init);
     sys.run_next_block();
@@ -32,18 +32,16 @@ fn read_state(pebbles_game: &Program) -> GameState {
 
 fn create_user_turns(game_state: &GameState) -> Vec<u32> {
     let mut user_turns: Vec<u32> = Vec::new();
-    let mut count = 0;
-    for _ in 0..game_state.pebbles_count {
-        let mut turn_num = (count + 31) % MAX_PEBBLES_PER_TURN;
+    for (count, _) in (0..game_state.pebbles_count).enumerate() {
+        let mut turn_num = (count + 31) % MAX_PEBBLES_PER_TURN as usize;
         if turn_num == 0 {
             if count % 2 == 0 {
-                turn_num = MAX_PEBBLES_PER_TURN;
+                turn_num = MAX_PEBBLES_PER_TURN as usize;
             } else {
                 turn_num = 1;
             }
         }
-        user_turns.push(turn_num);
-        count += 1;
+        user_turns.push(turn_num.try_into().unwrap());
     }
     user_turns
 }
